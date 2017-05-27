@@ -107,7 +107,7 @@ public class SysUser {
 	}
 
 	public void setLoginAccount(String loginAccount) {
-		this.loginAccount = loginAccount;
+		this.loginAccount = loginAccount == null ? null : loginAccount.trim(); 
 	} 
  
  } 
