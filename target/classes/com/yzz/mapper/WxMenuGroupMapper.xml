@@ -11,7 +11,7 @@
 <sql id="Base_Column_List">
 wx_menu_group_id,group_name,wx_public_account_id,is_enable
 </sql>
-<insert id="insert" parameterType="com.yzz.entity.WxMenuGroup"  useGeneratedKeys="true">
+<insert id="insert" parameterType="com.yzz.entity.WxMenuGroup">
 insert into wx_menu_group 
 ( wx_menu_group_id,group_name,wx_public_account_id,is_enable)
 values (#{wxMenuGroupId,jdbcType=INTEGER},

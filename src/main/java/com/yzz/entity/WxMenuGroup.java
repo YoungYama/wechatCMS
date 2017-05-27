@@ -5,7 +5,7 @@ package com.yzz.entity;
 * @description: wx_menu_group表的实体类WxMenuGroup 
 * 
 * @author 杨志钊 
-* @date 2017-05-27 16:07:44 
+* @date 2017-05-27 17:08:49 
 */ 
 
 public class WxMenuGroup {

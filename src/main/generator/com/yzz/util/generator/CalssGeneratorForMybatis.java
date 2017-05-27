@@ -26,15 +26,15 @@ public class CalssGeneratorForMybatis {
 		
 		CalssGeneratorForMybatis.generateEntityClass();
 		
-		CalssGeneratorForMybatis.generateDaoClass();
+//		CalssGeneratorForMybatis.generateDaoClass();
 		
 		CalssGeneratorForMybatis.generateMapperXml();
 		
-		CalssGeneratorForMybatis.generateServiceClass();
-		
-		CalssGeneratorForMybatis.generateServiceImplClass();
-		
-		CalssGeneratorForMybatis.generateCtrlClass();
+//		CalssGeneratorForMybatis.generateServiceClass();
+//		
+//		CalssGeneratorForMybatis.generateServiceImplClass();
+//		
+//		CalssGeneratorForMybatis.generateCtrlClass();
 	}
 
 	private static String projectPath = System.getProperty("user.dir");

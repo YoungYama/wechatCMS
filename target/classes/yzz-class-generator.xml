@@ -27,7 +27,7 @@
 	<javaCtrlGenerator targetPackage="com.yzz.ctrl" targetDir="src\main\java\" />
 	
 	<!-- 要生成类的相关表，无则默认生成全部 -->
-	<table tableName="wx_menu" /> 
+	<!-- <table tableName="wx_menu" /> --> 
 	<table tableName="wx_menu_group" /> 
 
 </generatorConfiguration>
