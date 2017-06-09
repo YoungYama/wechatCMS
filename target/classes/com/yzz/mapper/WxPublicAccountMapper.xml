@@ -12,13 +12,15 @@
 <result column="app_secret" property="appSecret" jdbcType="VARCHAR" />
 <result column="access_token" property="accessToken" jdbcType="VARCHAR" />
 <result column="last_modify_time" property="lastModifyTime" jdbcType="BIGINT" />
+<result column="oauth2_access_token" property="oauth2AccessToken" jdbcType="VARCHAR" />
+<result column="oauth2_last_modify_time" property="oauth2LastModifyTime" jdbcType="BIGINT" />
 </resultMap>
 <sql id="Base_Column_List">
-wx_public_account_id,url,token,encoding_aes_key,grant_type,app_id,app_secret,access_token,last_modify_time
+wx_public_account_id,url,token,encoding_aes_key,grant_type,app_id,app_secret,access_token,last_modify_time,oauth2_access_token,oauth2_last_modify_time
 </sql>
 <insert id="insert" parameterType="com.yzz.entity.WxPublicAccount">
 insert into wx_public_account 
-( wx_public_account_id,url,token,encoding_aes_key,grant_type,app_id,app_secret,access_token,last_modify_time)
+( wx_public_account_id,url,token,encoding_aes_key,grant_type,app_id,app_secret,access_token,last_modify_time,oauth2_access_token,oauth2_last_modify_time)
 values (#{wxPublicAccountId,jdbcType=VARCHAR},
 #{url,jdbcType=VARCHAR},
 #{token,jdbcType=VARCHAR},
@@ -27,7 +29,9 @@ values (#{wxPublicAccountId,jdbcType=VARCHAR},
 #{appId,jdbcType=VARCHAR},
 #{appSecret,jdbcType=VARCHAR},
 #{accessToken,jdbcType=VARCHAR},
-#{lastModifyTime,jdbcType=BIGINT}) 
+#{lastModifyTime,jdbcType=BIGINT},
+#{oauth2AccessToken,jdbcType=VARCHAR},
+#{oauth2LastModifyTime,jdbcType=BIGINT}) 
 </insert>
 
 <delete id="deleteBatch" parameterType="java.util.List">
@@ -54,7 +58,9 @@ grant_type = #{grantType,jdbcType=VARCHAR},
 app_id = #{appId,jdbcType=VARCHAR},
 app_secret = #{appSecret,jdbcType=VARCHAR},
 access_token = #{accessToken,jdbcType=VARCHAR},
-last_modify_time = #{lastModifyTime,jdbcType=BIGINT}
+last_modify_time = #{lastModifyTime,jdbcType=BIGINT},
+oauth2_access_token = #{oauth2AccessToken,jdbcType=VARCHAR},
+oauth2_last_modify_time = #{oauth2LastModifyTime,jdbcType=BIGINT}
  
 where wx_public_account_id = #{wxPublicAccountId,jdbcType=VARCHAR}
 </update>
@@ -84,6 +90,12 @@ update wx_public_account <set>
 </if>
 <if test="lastModifyTime != null">
  last_modify_time = #{lastModifyTime,jdbcType=BIGINT},
+</if>
+<if test="oauth2AccessToken != null">
+ oauth2_access_token = #{oauth2AccessToken,jdbcType=VARCHAR},
+</if>
+<if test="oauth2LastModifyTime != null">
+ oauth2_last_modify_time = #{oauth2LastModifyTime,jdbcType=BIGINT},
 </if>
 </set>
  
@@ -130,6 +142,12 @@ and access_token = #{entity.accessToken,jdbcType=VARCHAR}
 <if test="entity.lastModifyTime != null">
 and last_modify_time = #{entity.lastModifyTime,jdbcType=BIGINT}
 </if>
+<if test="entity.oauth2AccessToken != null">
+and oauth2_access_token = #{entity.oauth2AccessToken,jdbcType=VARCHAR}
+</if>
+<if test="entity.oauth2LastModifyTime != null">
+and oauth2_last_modify_time = #{entity.oauth2LastModifyTime,jdbcType=BIGINT}
+</if>
 </where>
 </if>
 <if test="page != null">
@@ -172,6 +190,12 @@ and access_token = #{entity.accessToken,jdbcType=VARCHAR}
 </if>
 <if test="entity.lastModifyTime != null">
 and last_modify_time = #{entity.lastModifyTime,jdbcType=BIGINT}
+</if>
+<if test="entity.oauth2AccessToken != null">
+and oauth2_access_token = #{entity.oauth2AccessToken,jdbcType=VARCHAR}
+</if>
+<if test="entity.oauth2LastModifyTime != null">
+and oauth2_last_modify_time = #{entity.oauth2LastModifyTime,jdbcType=BIGINT}
 </if>
 </where>
 </if>

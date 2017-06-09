@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>wechat-test.html</title>
+</head>
+<body ng-app="app">
+
+	<form action="" ng-controller="loginCtrl">
+		<input type="text" ng-model="loginAccount"><br> <input
+			type="text" ng-model="password"><br> <input type="text"
+			ng-model="wxPublicAccountId"><br> <input type="button"
+			ng-click="login()" value="login"><br>
+	</form>
+
+	<form action="" ng-controller="saveCtrl">
+		<input type="text" ng-model="url" readonly="readonly"><br> <input type="text"
+			ng-model="token"><br> <input type="text"
+			ng-model="wxPublicAccountId"><br> <input type="button"
+			ng-click="save()" value="save"><br>
+	</form>
+
+	<script type="text/javascript"
+		src="../../resources/js/plugin/angular-1.4.6.min.js"></script>
+	<script type="text/javascript">
+		var app = angular.module('app', []);
+		app
+				.controller(
+						'loginCtrl',
+						function($rootScope, $scope, $http) {
+							$scope.loginAccount = '18718995465';
+							$scope.password = '123456';
+							$scope.login = function() {
+								var params = {
+									'loginAccount' : $scope.loginAccount,
+									'password' : $scope.password
+								};
+
+								$http({
+									method : 'POST',
+									url : '/wechatCMS/sysUser/login',
+									params : params
+								})
+										.then(
+												function successCallback(
+														response) {
+													// 请求成功执行代码
+													var data = response.data;
+													if (data.success) {
+														$rootScope.wxPublicAccountId = data.data.wxPublicAccountId;
+													}
+												},
+												function errorCallback(response) {
+													// 请求失败执行代码
+												});
+							};
+						});
+
+		app
+				.controller(
+						'saveCtrl',
+						function($rootScope, $scope, $http) {
+							$scope.url = null;
+							$scope.token = null;
+							$scope.account = null;
+							var params = {
+								'wxPublicAccountId' : '52669710-29c2-4a19-bd18-2849c4f3e660-1495870631677'
+							};
+							$http({
+								method : 'GET',
+								url : '/wechatCMS/wxPublicAccount/select',
+								params : params
+							})
+									.then(
+											function successCallback(response) {
+												// 请求成功执行代码
+												var data = response.data;
+												if (data.success) {
+													var account = data.data;
+													$scope.account = account;
+													$scope.url = 'http://yzz.tunnel.qydev.com/wechatCMS/wxapi/handler/'
+															+ account.wxPublicAccountId;
+													$scope.token = account.token;
+												}
+											},
+											function errorCallback(response) {
+												// 请求失败执行代码
+											});
+							$scope.save = function() {
+								$scope.account.url = $scope.url;
+								$scope.account.token = $scope.token;
+								var params = $scope.account;
+								$http({
+									method : 'GET',
+									url : '/wechatCMS/wxPublicAccount/save',
+									params : params
+								}).then(function successCallback(response) {
+									// 请求成功执行代码
+									alert(JSON.stringify(response.data));
+									location.reload();
+								}, function errorCallback(response) {
+									// 请求失败执行代码
+								});
+							};
+						});
+	</script>
+</body>
+</html>

@@ -43,19 +43,26 @@ public class WeChatServiceApiImpl implements WeChatApiService {
 	private String CREATE_MENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN";
 
 	private String DELETE_MENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=ACCESS_TOKEN";
+	
+	private String OAUTH2_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect";
+	
+	private String OAUTH2_ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=ACCESS_TOKEN";
 
 	@Resource
 	WxPublicAccountDao wxPublicAccountDao;
 
 	@Resource
 	WxMenuDao wxMenuDao;
+	
+	@Resource
+	HandleMessageUtil handleMessageUtil;
 
 	@Override
-	public String handleMessage(String token, HttpServletRequest request) {
+	public String handleMessage(WxPublicAccount account, HttpServletRequest request) {
 		String message = null;
 
 		try {
-			message = HandleMessageUtil.initMessage(token, request);
+			message = handleMessageUtil.initMessage(account, request);
 		} catch (Exception e) {
 
 			logger.error(UserOperatedState.INNER_ERROR + ":" + e.getMessage());
@@ -66,12 +73,12 @@ public class WeChatServiceApiImpl implements WeChatApiService {
 	}
 
 	@Override
-	public String getAccessToken(WxPublicAccount entity) {
+	public String getAccessToken(WxPublicAccount account) {
 		String accessToken = null;
 
-		if (isTimeOutGetAccessToken(entity)) {// 过时
-			GET_ACCESS_TOKEN_URL = GET_ACCESS_TOKEN_URL.replace("APPID", entity.getAppId()).replace("APPSECRET",
-					entity.getAppSecret());
+		if (isTimeOutGetAccessToken(account)) {// 过时
+			GET_ACCESS_TOKEN_URL = GET_ACCESS_TOKEN_URL.replace("APPID", account.getAppId()).replace("APPSECRET",
+					account.getAppSecret());
 
 			try {
 				JSONObject result = HttpUtil.doGetStr(GET_ACCESS_TOKEN_URL);
@@ -83,9 +90,9 @@ public class WeChatServiceApiImpl implements WeChatApiService {
 					if (result.containsKey("access_token")) {
 						accessToken = result.getString("access_token");
 						// 更新数据库里的accessToken及其最后修改时间
-						entity.setAccessToken(accessToken);
-						entity.setLastModifyTime(TimeUtil.getCurrentTimeLong());
-						wxPublicAccountDao.updateByPrimaryKey(entity);
+						account.setAccessToken(accessToken);
+						account.setLastModifyTime(TimeUtil.getCurrentTimeLong());
+						wxPublicAccountDao.updateByPrimaryKey(account);
 					} else {
 						logger.error(UserOperatedState.INNER_ERROR + ":" + result);
 					}
@@ -98,7 +105,7 @@ public class WeChatServiceApiImpl implements WeChatApiService {
 			}
 
 		} else {
-			accessToken = entity.getAccessToken();
+			accessToken = account.getAccessToken();
 		}
 
 		return accessToken;

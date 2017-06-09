@@ -15,7 +15,7 @@ public interface WeChatApiService {
 	 * @param request
 	 * @return
 	 */
-	String handleMessage(String token, HttpServletRequest request);
+	String handleMessage(WxPublicAccount account, HttpServletRequest request);
 
 	/**
 	 * 获取公众号的全局唯一票据access_token

@@ -25,7 +25,7 @@ public class CalssGeneratorForMybatis {
 		CalssGeneratorForMybatis.setTableAndClassDatas(map);
 		
 		CalssGeneratorForMybatis.generateEntityClass();
-		
+//		
 //		CalssGeneratorForMybatis.generateDaoClass();
 		
 		CalssGeneratorForMybatis.generateMapperXml();

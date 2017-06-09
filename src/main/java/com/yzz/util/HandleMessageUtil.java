@@ -2,10 +2,12 @@ package com.yzz.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -13,8 +15,16 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.springframework.stereotype.Component;
 
 import com.thoughtworks.xstream.XStream;
+import com.yzz.dao.WxNewsDao;
+import com.yzz.dao.WxReplyMsgDao;
+import com.yzz.dao.WxTextDao;
+import com.yzz.entity.WxNews;
+import com.yzz.entity.WxPublicAccount;
+import com.yzz.entity.WxReplyMsg;
+import com.yzz.entity.WxText;
 import com.yzz.pojo.Image;
 import com.yzz.pojo.ImageMessage;
 import com.yzz.pojo.Music;
@@ -23,6 +33,7 @@ import com.yzz.pojo.News;
 import com.yzz.pojo.NewsMessage;
 import com.yzz.pojo.TextMessage;
 
+@Component
 public class HandleMessageUtil {
 
 	private static final Logger logger = Logger.getLogger(HandleMessageUtil.class);
@@ -42,32 +53,42 @@ public class HandleMessageUtil {
 	public static final String MESSAGE_CLICK = "CLICK";
 	public static final String MESSAGE_VIEW = "VIEW";
 	public static final String MESSAGE_SCANCODE = "scancode_push";
+	
+	@Resource
+	WxReplyMsgDao wxReplyMsgDao;
+	@Resource
+	WxTextDao wxTextDao;
+	@Resource
+	WxNewsDao wxNewsDao;
+	
+	
 
 	/**
 	 * 对公众号粉丝发出的不同信息、事件类型进行处理，并给出相应响应
 	 * 
-	 * @param token
-	 *            公众号开发者填写的token
+	 * @param account
+	 *            公众号
 	 * @param request
 	 *            微信服务器发出的请求，即公众号粉丝发出的信息，xml格式
 	 * @throws Exception
 	 */
-	public static String initMessage(String token, HttpServletRequest request) throws Exception {
+	public String initMessage(WxPublicAccount account, HttpServletRequest request) throws Exception {
 
 		// 获取微信服务器传来的xml消息并转为map
 		Map<String, String> map = xmlToMap(request);
 		String toUserName = map.get("ToUserName");// 开发者微信号
 		String fromUserName = map.get("FromUserName");// 发送方帐号（一个OpenID）
 		String msgType = map.get("MsgType");
-		String content = map.get("Content");
 
 		String message = null;// 响应信息
 
 		// 判断事件类型并做出相应响应
 		switch (msgType) {
 		case MESSAGE_TEXT:// 文本消息
-
-			message = initTextMessage(fromUserName, toUserName, content);
+			
+			String keyword = map.get("Content").trim();
+			
+			message = replyMsgByKeyword(fromUserName, toUserName, account, keyword);
 
 			break;
 		case MESSAGE_IMAGE:// 图片消息
@@ -80,7 +101,7 @@ public class HandleMessageUtil {
 			String eventType = map.get("Event");
 
 			if (MESSAGE_SUBSCRIBE.equals(eventType)) {
-				message = fromUserName + "关注微信测试号啦";
+				message = replySubscribeMsg(fromUserName, toUserName, account);
 			} else if (MESSAGE_UNSUBSCRIBE.equals(eventType)) {
 				logger.info(fromUserName + "取消关注微信测试号啦");
 			} else if (MESSAGE_CLICK.equals(eventType)) {
@@ -95,12 +116,110 @@ public class HandleMessageUtil {
 
 			break;
 		default:
-			message = "暂不对该类型的信息进行处理";
-			message = initTextMessage(fromUserName, toUserName, message);
-
+			message = replyDefaultMsg(fromUserName, toUserName, account);//自动回复
+			if (message == null) {
+				message = "暂不对该类型的信息进行处理";
+				message = initTextMessage(fromUserName, toUserName, message);
+			}
 			break;
 		}
 
+		return message;
+	}
+	
+	private String replyMsgByKeyword(String fromUserName, String toUserName, WxPublicAccount account, String keyword){
+		String message = null;
+		WxReplyMsg wxReplyMsg = new WxReplyMsg();
+		wxReplyMsg.setWxPublicAccountId(account.getWxPublicAccountId());
+		wxReplyMsg.setKeyword(keyword);
+		wxReplyMsg.setReplyType(2);//关键字回复
+		List<WxReplyMsg> wxReplyMsgs = wxReplyMsgDao.selectByEntityAndPage(wxReplyMsg, null);
+		if (wxReplyMsgs.size() > 0) {//后台有设置
+			wxReplyMsg = wxReplyMsgs.get(0);
+			message = initMessage(fromUserName, toUserName, wxReplyMsg);
+		} else {//后台无设置
+			message = replyDefaultMsg(fromUserName, toUserName, account);
+		}
+		return message;
+	}
+	/**
+	 * 自动回复
+	 * @param fromUserName
+	 * @param toUserName
+	 * @param wxReplyMsg
+	 * @param account
+	 * @return
+	 */
+	private String replyDefaultMsg(String fromUserName, String toUserName, WxPublicAccount account){
+		String message = null;
+		WxReplyMsg wxReplyMsg = new WxReplyMsg();
+		wxReplyMsg.setWxPublicAccountId(account.getWxPublicAccountId());
+		wxReplyMsg.setReplyType(1);//自动回复
+		List<WxReplyMsg> wxReplyMsgs = wxReplyMsgDao.selectByEntityAndPage(wxReplyMsg, null);
+		if (wxReplyMsgs.size() > 0) {//后台有设置
+			wxReplyMsg = wxReplyMsgs.get(0);
+			message = initMessage(fromUserName, toUserName, wxReplyMsg);
+		}
+		
+		return message;
+	}
+	
+	/**
+	 * 关注回复
+	 * @param fromUserName
+	 * @param toUserName
+	 * @param account
+	 * @return
+	 */
+	private String replySubscribeMsg(String fromUserName, String toUserName, WxPublicAccount account){
+		String message = null;
+		WxReplyMsg wxReplyMsg = new WxReplyMsg();
+		wxReplyMsg.setWxPublicAccountId(account.getWxPublicAccountId());
+		wxReplyMsg.setReplyType(0);//关注回复
+		List<WxReplyMsg> wxReplyMsgs = wxReplyMsgDao.selectByEntityAndPage(wxReplyMsg, null);
+		if (wxReplyMsgs.size() > 0) {//后台有设置
+			wxReplyMsg = wxReplyMsgs.get(0);
+			message = initMessage(fromUserName, toUserName, wxReplyMsg);
+		}
+		
+		return message;
+	}
+	
+	/**
+	 * 组装各种类型的信息
+	 * @param fromUserName
+	 * @param toUserName
+	 * @param wxReplyMsg
+	 * @return
+	 */
+	private String initMessage(String fromUserName, String toUserName, WxReplyMsg wxReplyMsg){
+		String message = null;
+		switch (wxReplyMsg.getMsgType()) {
+		case MESSAGE_TEXT:
+			WxText wxText = wxTextDao.selectByPrimaryKey(wxReplyMsg.getMediaId());
+			message = initTextMessage(fromUserName, toUserName, wxText.getContent());
+			break;
+
+		case MESSAGE_NEWS:
+			WxNews wxNews = new WxNews();
+			wxNews.setMediaId(wxReplyMsg.getMediaId());
+			List<WxNews> wxNewsList = wxNewsDao.selectByEntityAndPage(wxNews, null);
+			List<News> newsList = new ArrayList<>();
+			News news = null;
+			for (WxNews wxNews2 : wxNewsList) {
+				news = new News();
+				news.setTitle(wxNews2.getTitle());
+				news.setDescription(wxNews2.getDigest());
+				news.setPicUrl(wxNews2.getPicUrl());
+				news.setUrl(wxNews2.getUrl());
+				newsList.add(news);
+			}
+			
+			message = initNewsMessage(newsList, fromUserName, toUserName);
+			
+			break;
+		}
+		
 		return message;
 	}
 
@@ -115,7 +234,7 @@ public class HandleMessageUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	// public static String handleTextMessageKeyword(String fromUserName,String
+	// public String handleTextMessageKeyword(String fromUserName,String
 	// toUserName,String content,String publicAccountid,WeChatCMSService
 	// weChatCMSService,PublicAccount publicAccount) throws Exception {
 	// String message=null;//响应信息
@@ -193,7 +312,7 @@ public class HandleMessageUtil {
 	 * @throws DocumentException
 	 */
 	@SuppressWarnings("unchecked")
-	public static Map<String, String> xmlToMap(HttpServletRequest request) throws IOException, DocumentException {
+	public Map<String, String> xmlToMap(HttpServletRequest request) throws IOException, DocumentException {
 		Map<String, String> map = new HashMap<String, String>();
 		SAXReader reader = new SAXReader();
 
@@ -222,7 +341,7 @@ public class HandleMessageUtil {
 	 * @param textMessage
 	 * @return
 	 */
-	public static String textMessageToXml(TextMessage textMessage) {
+	public String textMessageToXml(TextMessage textMessage) {
 		XStream xStream = new XStream();
 		xStream.alias("xml", TextMessage.class);
 
@@ -235,7 +354,7 @@ public class HandleMessageUtil {
 	 * @param textMessage
 	 * @return
 	 */
-	public static String newsMessageToXml(NewsMessage newsMessage) {
+	public String newsMessageToXml(NewsMessage newsMessage) {
 		XStream xStream = new XStream();
 		xStream.alias("xml", NewsMessage.class);
 		xStream.alias("item", News.class);
@@ -249,7 +368,7 @@ public class HandleMessageUtil {
 	 * @param imageMessage
 	 * @return
 	 */
-	public static String imageMessageToXml(ImageMessage imageMessage) {
+	public String imageMessageToXml(ImageMessage imageMessage) {
 		XStream xStream = new XStream();
 		xStream.alias("xml", ImageMessage.class);
 
@@ -262,7 +381,7 @@ public class HandleMessageUtil {
 	 * @param musicMessage
 	 * @return
 	 */
-	public static String musicMessageToXml(MusicMessage musicMessage) {
+	public String musicMessageToXml(MusicMessage musicMessage) {
 		XStream xStream = new XStream();
 		xStream.alias("xml", MusicMessage.class);
 
@@ -277,7 +396,7 @@ public class HandleMessageUtil {
 	 * @param content
 	 * @return
 	 */
-	public static String initTextMessage(String fromUserName, String toUserName, String content) {
+	public String initTextMessage(String fromUserName, String toUserName, String content) {
 		TextMessage textMessage = new TextMessage();
 		textMessage.setToUserName(fromUserName);
 		textMessage.setFromUserName(toUserName);
@@ -295,7 +414,7 @@ public class HandleMessageUtil {
 	 * @param mediaId
 	 * @return
 	 */
-	public static String initImageMessage(String toUserName, String fromUserName, String mediaId) {
+	public String initImageMessage(String toUserName, String fromUserName, String mediaId) {
 		String message = null;
 		Image image = new Image();
 		image.setMediaId(mediaId);
@@ -321,7 +440,7 @@ public class HandleMessageUtil {
 	 * @param HQMusicUrl
 	 * @return
 	 */
-	public static String initMusicMessage(String toUserName, String fromUserName, String mediaId, String title,
+	public String initMusicMessage(String toUserName, String fromUserName, String mediaId, String title,
 			String description, String musicUrl, String HQMusicUrl) {
 		String message = null;
 		Music music = new Music();
@@ -349,7 +468,7 @@ public class HandleMessageUtil {
 	 * @param toUserName
 	 * @return
 	 */
-	public static String initNewsMessage(List<News> newsList, String fromUserName, String toUserName) {
+	public String initNewsMessage(List<News> newsList, String fromUserName, String toUserName) {
 		String message = null;
 		NewsMessage newsMessage = new NewsMessage();
 
@@ -373,7 +492,7 @@ public class HandleMessageUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	// public static JSONObject getWeChatMsgTemplate(WeChatCMSService
+	// public JSONObject getWeChatMsgTemplate(WeChatCMSService
 	// weChatCMSService,PublicAccount publicAccount,String fromUserName) throws
 	// Exception{
 	// try {

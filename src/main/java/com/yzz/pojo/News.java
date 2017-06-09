@@ -5,7 +5,7 @@ public class News {
 	private String Title;
 	private String Description;
 	private String PicUrl;
-	private String Url;
+	private String Url;//点击详情链接
 
 	public String getTitle() {
 		return Title;

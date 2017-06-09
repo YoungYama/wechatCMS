@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yzz.dao.WxReplyMsgDao">
+<resultMap id="BaseResultMap" type="com.yzz.entity.WxReplyMsg">
+ <!-- 自动生成开始 --> 
+<id column="wx_reply_msg_id" property="wxReplyMsgId" jdbcType="VARCHAR" />
+<result column="wx_public_account_id" property="wxPublicAccountId" jdbcType="VARCHAR" />
+<result column="media_id" property="mediaId" jdbcType="VARCHAR" />
+<result column="msg_type" property="msgType" jdbcType="VARCHAR" />
+<result column="reply_type" property="replyType" jdbcType="INTEGER" />
+<result column="keyword" property="keyword" jdbcType="VARCHAR" />
+</resultMap>
+<sql id="Base_Column_List">
+wx_reply_msg_id,wx_public_account_id,media_id,msg_type,reply_type,keyword
+</sql>
+<insert id="insert" parameterType="com.yzz.entity.WxReplyMsg">
+insert into wx_reply_msg 
+( wx_reply_msg_id,wx_public_account_id,media_id,msg_type,reply_type,keyword)
+values (#{wxReplyMsgId,jdbcType=VARCHAR},
+#{wxPublicAccountId,jdbcType=VARCHAR},
+#{mediaId,jdbcType=VARCHAR},
+#{msgType,jdbcType=VARCHAR},
+#{replyType,jdbcType=INTEGER},
+#{keyword,jdbcType=VARCHAR}) 
+</insert>
+
+<delete id="deleteBatch" parameterType="java.util.List">
+delete
+from wx_reply_msg 
+where wx_reply_msg_id in 
+<foreach collection="list" item="item" open="(" separator="," close=")"> 
+ #{item} 
+ </foreach>
+</delete>
+
+<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+delete
+from wx_reply_msg 
+where wx_reply_msg_id = #{wxReplyMsgId,jdbcType=VARCHAR}
+</delete>
+
+<update id="updateByPrimaryKey" parameterType="com.yzz.entity.WxReplyMsg">
+update wx_reply_msg set 
+wx_public_account_id = #{wxPublicAccountId,jdbcType=VARCHAR},
+media_id = #{mediaId,jdbcType=VARCHAR},
+msg_type = #{msgType,jdbcType=VARCHAR},
+reply_type = #{replyType,jdbcType=INTEGER},
+keyword = #{keyword,jdbcType=VARCHAR}
+ 
+where wx_reply_msg_id = #{wxReplyMsgId,jdbcType=VARCHAR}
+</update>
+
+<update id="updateByPrimaryKeySelective" parameterType="com.yzz.entity.WxReplyMsg">
+update wx_reply_msg <set> 
+<if test="wxPublicAccountId != null">
+ wx_public_account_id = #{wxPublicAccountId,jdbcType=VARCHAR},
+</if>
+<if test="mediaId != null">
+ media_id = #{mediaId,jdbcType=VARCHAR},
+</if>
+<if test="msgType != null">
+ msg_type = #{msgType,jdbcType=VARCHAR},
+</if>
+<if test="replyType != null">
+ reply_type = #{replyType,jdbcType=INTEGER},
+</if>
+<if test="keyword != null">
+ keyword = #{keyword,jdbcType=VARCHAR},
+</if>
+</set>
+ 
+where wx_reply_msg_id = #{wxReplyMsgId,jdbcType=VARCHAR}
+</update>
+
+<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+select
+<include refid="Base_Column_List" />
+from wx_reply_msg 
+where wx_reply_msg_id = #{wxReplyMsgId,jdbcType=VARCHAR}
+</select>
+
+<select id="selectByEntityAndPage" resultMap="BaseResultMap" >
+select
+<include refid="Base_Column_List" />
+from wx_reply_msg 
+<if test="entity != null">
+<where>
+ <if test="entity.wxReplyMsgId != null">
+and wx_reply_msg_id = #{entity.wxReplyMsgId,jdbcType=VARCHAR}
+</if>
+<if test="entity.wxPublicAccountId != null">
+and wx_public_account_id = #{entity.wxPublicAccountId,jdbcType=VARCHAR}
+</if>
+<if test="entity.mediaId != null">
+and media_id = #{entity.mediaId,jdbcType=VARCHAR}
+</if>
+<if test="entity.msgType != null">
+and msg_type = #{entity.msgType,jdbcType=VARCHAR}
+</if>
+<if test="entity.replyType != null">
+and reply_type = #{entity.replyType,jdbcType=INTEGER}
+</if>
+<if test="entity.keyword != null">
+and keyword = #{entity.keyword,jdbcType=VARCHAR}
+</if>
+</where>
+</if>
+<if test="page != null">
+<if test="page.orderField != null">
+order by ${page.orderField} ${page.sort}
+</if>
+<if test="page.start != null">
+limit #{page.start,jdbcType=INTEGER}, #{page.pageSize,jdbcType=INTEGER}
+</if>
+</if>
+</select>
+
+<select id="countByEntity" resultType="java.lang.Integer" >
+select count(*) from wx_reply_msg 
+<if test="entity != null">
+<where>
+ <if test="entity.wxReplyMsgId != null">
+and wx_reply_msg_id = #{entity.wxReplyMsgId,jdbcType=VARCHAR}
+</if>
+<if test="entity.wxPublicAccountId != null">
+and wx_public_account_id = #{entity.wxPublicAccountId,jdbcType=VARCHAR}
+</if>
+<if test="entity.mediaId != null">
+and media_id = #{entity.mediaId,jdbcType=VARCHAR}
+</if>
+<if test="entity.msgType != null">
+and msg_type = #{entity.msgType,jdbcType=VARCHAR}
+</if>
+<if test="entity.replyType != null">
+and reply_type = #{entity.replyType,jdbcType=INTEGER}
+</if>
+<if test="entity.keyword != null">
+and keyword = #{entity.keyword,jdbcType=VARCHAR}
+</if>
+</where>
+</if>
+</select>
+
+ <!-- 自动生成结束 --> 
+ <!-- 手写开始 --> 
+ <!-- 手写结束 -->
+</mapper>

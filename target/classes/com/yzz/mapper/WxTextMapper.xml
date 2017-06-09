@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yzz.dao.WxTextDao">
+<resultMap id="BaseResultMap" type="com.yzz.entity.WxText">
+ <!-- 自动生成开始 --> 
+<id column="wx_text_id" property="wxTextId" jdbcType="VARCHAR" />
+<result column="wx_public_account_id" property="wxPublicAccountId" jdbcType="VARCHAR" />
+<result column="content" property="content" jdbcType="VARCHAR" />
+</resultMap>
+<sql id="Base_Column_List">
+wx_text_id,wx_public_account_id,content
+</sql>
+<insert id="insert" parameterType="com.yzz.entity.WxText">
+insert into wx_text 
+( wx_text_id,wx_public_account_id,content)
+values (#{wxTextId,jdbcType=VARCHAR},
+#{wxPublicAccountId,jdbcType=VARCHAR},
+#{content,jdbcType=VARCHAR}) 
+</insert>
+
+<delete id="deleteBatch" parameterType="java.util.List">
+delete
+from wx_text 
+where wx_text_id in 
+<foreach collection="list" item="item" open="(" separator="," close=")"> 
+ #{item} 
+ </foreach>
+</delete>
+
+<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+delete
+from wx_text 
+where wx_text_id = #{wxTextId,jdbcType=VARCHAR}
+</delete>
+
+<update id="updateByPrimaryKey" parameterType="com.yzz.entity.WxText">
+update wx_text set 
+wx_public_account_id = #{wxPublicAccountId,jdbcType=VARCHAR},
+content = #{content,jdbcType=VARCHAR}
+ 
+where wx_text_id = #{wxTextId,jdbcType=VARCHAR}
+</update>
+
+<update id="updateByPrimaryKeySelective" parameterType="com.yzz.entity.WxText">
+update wx_text <set> 
+<if test="wxPublicAccountId != null">
+ wx_public_account_id = #{wxPublicAccountId,jdbcType=VARCHAR},
+</if>
+<if test="content != null">
+ content = #{content,jdbcType=VARCHAR},
+</if>
+</set>
+ 
+where wx_text_id = #{wxTextId,jdbcType=VARCHAR}
+</update>
+
+<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+select
+<include refid="Base_Column_List" />
+from wx_text 
+where wx_text_id = #{wxTextId,jdbcType=VARCHAR}
+</select>
+
+<select id="selectByEntityAndPage" resultMap="BaseResultMap" >
+select
+<include refid="Base_Column_List" />
+from wx_text 
+<if test="entity != null">
+<where>
+ <if test="entity.wxTextId != null">
+and wx_text_id = #{entity.wxTextId,jdbcType=VARCHAR}
+</if>
+<if test="entity.wxPublicAccountId != null">
+and wx_public_account_id = #{entity.wxPublicAccountId,jdbcType=VARCHAR}
+</if>
+<if test="entity.content != null">
+and content = #{entity.content,jdbcType=VARCHAR}
+</if>
+</where>
+</if>
+<if test="page != null">
+<if test="page.orderField != null">
+order by ${page.orderField} ${page.sort}
+</if>
+<if test="page.start != null">
+limit #{page.start,jdbcType=INTEGER}, #{page.pageSize,jdbcType=INTEGER}
+</if>
+</if>
+</select>
+
+<select id="countByEntity" resultType="java.lang.Integer" >
+select count(*) from wx_text 
+<if test="entity != null">
+<where>
+ <if test="entity.wxTextId != null">
+and wx_text_id = #{entity.wxTextId,jdbcType=VARCHAR}
+</if>
+<if test="entity.wxPublicAccountId != null">
+and wx_public_account_id = #{entity.wxPublicAccountId,jdbcType=VARCHAR}
+</if>
+<if test="entity.content != null">
+and content = #{entity.content,jdbcType=VARCHAR}
+</if>
+</where>
+</if>
+</select>
+
+ <!-- 自动生成结束 --> 
+ <!-- 手写开始 --> 
+ <!-- 手写结束 -->
+</mapper>

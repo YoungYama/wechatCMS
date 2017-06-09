@@ -34,7 +34,7 @@ public class SysUserCtrl {
 	SysUserService sysUserService;
 	
 	/** 系统用户注册 */
-	@RequestMapping(value = "/register", method = RequestMethod.GET)
+	@RequestMapping(value = "/register", method = RequestMethod.POST)
 	@ResponseBody
 	public ResultData<Void> register(SysUser entity) {
 		ResultData<Void> resultData = sysUserService.register(entity);
@@ -43,7 +43,7 @@ public class SysUserCtrl {
 	}
 
 	/** 系统用户登录 */
-	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	@ResponseBody
 	public ResultData<SysUser> login(SysUser entity, HttpServletRequest request, HttpServletResponse response,
 			HttpSession session) {
